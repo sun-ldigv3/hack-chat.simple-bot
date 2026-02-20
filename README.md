@@ -1,54 +1,47 @@
 # hack-chat.simple-bot
-本机器人是基于WebSocket协议开发的Hack.Chat聊天辅助工具，提供消息管理、用户统计、命令系统等功能，直接在控制台运行，无需依赖。
+本机器人是基于WebSocket协议开发的Hack.Chat聊天辅助工具，提供消息管理、用户统计、命令系统等功能。
 
 # 版本介绍:
-1. bot 这是一个精简版本，提供基础功能 
-2. lounge_bot 这是一个在 bot.js 的基础上拥有特殊命令的版本，提供身份认证
-3. sunldigv3_bot 这是一个文件夹，包括前端代码与后端代码，功能与 lounge_bot 相同，但有图形化界面
-4. Evil_bot 这是一个基于 bot 的邪恶版本，加入房间随机名称，用 !wtf 可以刷屏
-5. lounge_bot_new 这是一个基于 lounge_bot 的版本，具体更新可查看代码，功能更丰富
+1.bot.js - 这是机器人的框架
 
-# bot.js 功能：
-<li>!help - 显示所有可用命令说明</li>
-<li>!roll - 随机生成1-6的骰子点数</li>
-<li>!stats - 显示频道活跃用户排行榜</li>
-<li>!save - 导出当前聊天记录为JSON文件</li>
-<li>!afk - 设置/取消离开状态</li>
-注： bot.js 默认加入 room ，默认名称为 bot_
+2.sunldigv3_bot - 这是机器人的主体，在浏览器环境上运行
 
-# lounge_bot 功能
-<li>在 bot.js 的基础上新增特殊命令</li>
-<li>分别为：</li>
-<li>!s [name] 禁言某人</li>
-<li>!t [name] 取消禁言某人</li>
-<li>!con [text] 控制bot输出 text </li>
+3.sunldigv3_bot_nodejs - 这是在node.js上运行的版本
 
-如果想要改管理员
-需将代码中类似于这样的：
+# 功能介绍
 
- ``` javascript
- const authCode = msg.nick.startsWith('sun') ? 'sun' : null;
-  
-  if(authCode === 'sun') {
-    this.silencedUsers.set(targetUser, true);
-```
-所有 sun 改为其他的，如全部改为 123 ，
-这种情况下所有名称最前面有 123 的用户都有权限使用特殊命令
+所有用户均可使用的基础指令。
 
-注： lounge_bot 默认加入 lounge ，默认名称为 sunldigv3_bot
+| 指令 | 参数 | 功能说明 |
+| :--- | :--- | :--- |
+| `!help` | 无 | 显示此帮助信息列表 |
+| `!online` | 无 | 实时获取当前频道在线用户清单 |
+| `!stats` | 无 | 查看频道活跃度 TOP3 及当前在线统计 |
+| `!userinfo` | `[用户名]` | 查询指定用户的发言数、AFK及禁言状态 |
+| `!yiyan` | 无 | 获取一句来自 Hitokoto 的随机文学感悟 |
+| `!emoji` | 无 | 发送一个随机选取的表情符号 |
+| `!weather` | `[城市]` | 查询指定城市的实时简易天气 |
 
+仅管理员可以使用的指令。
 
-# 使用方法 01
+| 指令 | 参数 | 功能说明 |
+| :--- | :--- | :--- |
+| `!helpadmin` | 无 | 获取管理员专属指令详情 |
+| `!mute` | `[名] [分]` | 临时禁言指定用户（分钟制） |
+| `!silence` | `[用户名]` | 永久禁言指定用户 |
+| `!unsilence` | `[用户名]` | 解除用户的禁言限制 |
+| `!announce` | `[内容]` | 发送带有显著标识的频道官方公告 |
+| `!pann` | `[子命令]` | **定时公告管理**：支持 `add/list/remove/clear` |
+| `!con` | `[文本]` | 强制机器人输出原始文本（绕过逻辑处理） |
+| `!stop` | 无 | 优雅停止机器人运行并切断连接 |
+
+# 使用方法
 <li>打开浏览器控制台</li>
-<li>将 bot.js 里的代码直接粘贴进去</li>
-<li>找到这里： channel: "room",  其中 room 为房间名，可自定义（不要带"?"）</li>
-<li>找到这里： botName: "bot_",  其中 bot_ 为bot名，可自定义</li>
+<li>将 sunldigv3_bot.js 里的代码直接粘贴进去</li>
+<li>找到这里： channel: "lounge",  其中 lounge 为房间名，可自定义（不要带"?"）</li>
+<li>找到这里： botName: "sunldigv3_bot",  其中 sunldigv3_bot 为bot名，可自定义</li>
+<li>找到这里： hex: "#5ee6ed",其中 #5ee6ed 为bot的颜色，可自定义</li>
 <li>按回车即可运行</li>
-
-# 使用方法 02
-<li>将 sunldigv3_bot 文件夹下载解压</li>
-<li>运行 index.html bot 会自动加入</li>
-<li>关闭 index.html bot 会自动退出</li>
 
 # 对于移动设备，如手机
 <li>可以下载 via 浏览器</li>
@@ -57,5 +50,19 @@
 <li>名称自定义，如：bot</li>
 <li>在网页 URL 中输入 javascript: [项目代码]</li>
 <li>保存，在任意页面打开书签界面，点击保存的书签即可运行</li>
+
+# node.js版本
+执行以下代码：
+``` javascript
+# 初始化 package.json（项目配置文件，必须先执行）
+npm init -y
+
+# 安装所需依赖（ws、node-fetch@2、fs-extra）
+npm install ws node-fetch@2 fs-extra --save
+
+#启动机器人
+node sunldigv3_bot_nodejs.js
+```
+
 
 *注：此项目不会长期维护，仅提供框架。*
