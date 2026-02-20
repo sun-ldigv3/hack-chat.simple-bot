@@ -1,10 +1,15 @@
 (function () {
     const CONFIG = {
-        server: "wss://hack.chat/chat-ws", // 官方WS地址，禁止修改
-        channel: "lounge", // 机器人频道（和你访问的hack.chat/xxx频道一致）
+        server: "wss://hack.chat/chat-ws", // 官方WS地址
+        channel: "lounge", //加入频道
         botName: "sunldigv3_bot",
-        debug: false, // 调试模式，日常关闭
-        // 通用常量（按需微调，无需大幅修改）
+        debug: false, // 调试模式，false或者true
+        // 新增颜色配置
+        color: {
+            enable: true, // 是否启用颜色设置
+            hex: "#5ee6ed" // 16进制颜色值（必须以#开头）
+        },
+        // 通用常量
         CONST: {
             adminPrefix: 'sun', // 管理员前缀（仅该前缀用户可执行管理员命令）
             cmdPrefix: '!', // 命令前缀
@@ -12,7 +17,7 @@
             muteCheckInterval: 10000, // 禁言检查间隔10秒
             maxMsgHistory: 1000, // 本地消息最大存储量
             latestMsgCount: 5, // 最新消息展示数
-            welcomeMsg: "欢迎 %s 加入！发`!help`看命令", // 移除mk前缀，纯文本
+            welcomeMsg: "欢迎 %s 加入！发送`!help`查看命令", // 移除mk前缀，纯文本
             emojiList: ['😀', '😂', '🤣', '😊', '👍', '🎉', '🎁', '🌟', '🚀', '💡', '📚', '🎲', '☁️', '⚡', '❤️'],
             // 模仿风格模板（参考 awa_ya 风格：俏皮/幽默）
             styleTemplates: {
@@ -20,7 +25,9 @@
                     '我也很不解',
                     '这问题把我问懵了',
                     '同感，谁能解释一下',
+                    '?',
                     '我就是一个小机器人，也很困惑',
+                    '？',
                     '这……我需要查阅我的小百科'
                 ],
                 exclaimReplies: [
@@ -46,7 +53,7 @@
         }
     };
 
-    // 命令配置：新增/修改命令仅改此处，无需动业务代码
+    // 命令配置
     const CMD_CONFIG = {
         help: { trigger: ['help', 'h'], desc: '查看所有可用命令', auth: false, public: true, params: '' },
         roll: { trigger: ['roll'], desc: '掷骰子，支持!roll 1-100自定义范围', auth: false, public: true, params: '[范围(可选)]' },
@@ -73,7 +80,7 @@
     }; 
 
     const bot = {
-        // 运行时数据（无持久化，重启重置）
+        // 运行时数据
         ws: null,
         clientId: Math.random().toString(36).slice(2, 10),
         lastSendTime: 0,
@@ -170,6 +177,30 @@
                 nick: CONFIG.botName,
                 clientId: this.clientId
             });
+            
+            // 发送颜色指令（新增）
+            this.sendColorCommand();
+        },
+
+        // 新增：发送颜色设置指令
+        sendColorCommand() {
+            // 校验配置是否启用且颜色格式合法
+            if (!CONFIG.color?.enable) return;
+            const colorHex = CONFIG.color.hex?.trim() || '';
+            // 验证16进制颜色格式（#开头 + 6位/3位16进制字符）
+            const colorReg = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/;
+            if (!colorReg.test(colorHex)) {
+                console.error(`[颜色配置错误] 无效的16进制颜色值：${colorHex}`);
+                return;
+            }
+            
+            // 发送/color指令
+            this.sendWSMessage({
+                cmd: 'chat',
+                text: `/color ${colorHex}`,
+                clientId: this.clientId
+            }, true); // 忽略限流，确保颜色指令优先发送
+            CONFIG.debug && console.log(`[颜色设置] 已发送：/color ${colorHex}`);
         },
 
         // 处理所有官方指令（已完全移除私信相关逻辑）
@@ -888,8 +919,6 @@
 
         // 随机工具
         randomPick(arr) { return arr && arr.length ? arr[Math.floor(Math.random()*arr.length)] : null; },
-
-
 
         // 一言（从 hitokoto API 获取随机短句）
         async handleYiyan(msg, _) {
